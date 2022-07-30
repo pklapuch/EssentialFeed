@@ -1,4 +1,0 @@
-os: osx
-osx_image: xcode13.4.1
-langauge: swift
-script: xcodebuild clean build test -project EssentialFeed.xcodeproj -scheme "CI" CODE_SIGN_IDENTIFY="" CODE_SIGNING_REQUIRED=NO
