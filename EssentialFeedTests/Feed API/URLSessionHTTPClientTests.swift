@@ -27,10 +27,9 @@ final class URLSessionHTTPClientTests: XCTestCase {
             XCTAssertEqual(request.url, url)
             XCTAssertEqual(request.httpMethod, "GET")
         }
-        makeSUT().get(from: url, completion: { _ in
-            exp.fulfill()
-        })
-        wait(for: [exp], timeout: 20)
+        
+        makeSUT().get(from: url, completion: { _ in exp.fulfill() })
+        wait(for: [exp], timeout: 2)
     }
     
     func test_getFromURL_failsOnRequestError() {
@@ -149,12 +148,10 @@ final class URLSessionHTTPClientTests: XCTestCase {
         }
         
         static func startInterceptingRequests() {
-            print("-- start intercepting URLProtocol")
             URLProtocol.registerClass(URLProtocolStub.self)
         }
         
         static func stopInterceptingRequests() {
-            print("-- stop intercepting URLProtocol")
             URLProtocol.unregisterClass(URLProtocolStub.self)
             stub = nil
             requestObserver = nil
@@ -169,8 +166,6 @@ final class URLSessionHTTPClientTests: XCTestCase {
         }
         
         override class func canInit(with request: URLRequest) -> Bool {
-            print("-- canInit: \(request.url?.absoluteString ?? "--")")
-            requestObserver?(request)
             return true
         }
         
@@ -179,7 +174,10 @@ final class URLSessionHTTPClientTests: XCTestCase {
         }
         
         override func startLoading() {
-            print("-- start loading: \(request.url?.absoluteString ?? "--")")
+            if let requestObserver = URLProtocolStub.requestObserver {
+                client?.urlProtocolDidFinishLoading(self)
+                return requestObserver(request)
+            }
             
             if let data = Self.stub?.data {
                 client?.urlProtocol(self, didLoad: data)
